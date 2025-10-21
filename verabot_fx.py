@@ -99,9 +99,9 @@ def check_price():
         print("Ошибка в check_price:", e)
 
 
-# === Основной цикл ===
-def run_bot():
-    print("Бот запущен. Проверка каждые 60 секунд.")
+# === Основной цикл проверки ===
+def run_price_monitor():
+    print("Мониторинг цен запущен. Проверка каждые 60 секунд.")
     while True:
         try:
             check_price()
@@ -112,12 +112,8 @@ def run_bot():
 
 
 # === Точка входа ===
-if __name__ == "__main__":
-    t = threading.Thread(target=run_bot)
-    t.start()
+if __name__ == "__main
 
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
 
 
 
