@@ -65,18 +65,24 @@ def check_price():
         print("Ошибка в check_price:", e)
 
 
-def main_loop():
+def main():
     print("Бот запущен. Проверка каждые 60 секунд.")
     while True:
-        check_price()
-        time.sleep(60)
+        try:
+            check_price()
+            time.sleep(60)
+        except Exception as e:
+            print("Ошибка:", e)
+            time.sleep(60)
 
 
 if __name__ == "__main__":
-    # Запуск проверки в отдельном потоке
-    threading.Thread(target=main_loop).start()
+    import threading
 
-    # Flask-сервер для Render (порт обязателен)
+    # Запуск мониторинга в отдельном потоке
+    t = threading.Thread(target=main)
+    t.start()
+
+    # Flask для Render, чтобы он видел активный веб-сервер
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
