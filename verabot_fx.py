@@ -1,68 +1,69 @@
-import asyncio
-import json
-import requests
-import websockets
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+import time
+import finnhub
+import telebot
+import os
 
-BOT_TOKEN = "8357685940:AAFXzQgVXJh5XCxvfw2bryDjNX8r-TcI0kw"
-FINNHUB_KEY = "d3rkj0pr01qopgh8sfa0d3rkj0pr01qopgh8sfag"
+# === ВАШИ ДАННЫЕ ===
+BOT_TOKEN = "8357685940:AAFzQ9VXJh5XCxvfw2bryDjNX8r-TcIOkw"
+FINNHUB_KEY = "d3rkj9kp0pr01qopqph8sfa0d3rkj9kp0pr01qopqph8sfag"
+CHAT_ID = 6486928282
+# ====================
+
 SYMBOL = "OANDA:EUR_USD"
 
-current_high = None
-current_low = None
+bot = telebot.TeleBot(BOT_TOKEN)
+finnhub_client = finnhub.Client(api_key=FINNHUB_KEY)
+
 previous_high = None
 previous_low = None
 
-async def get_hourly_data():
-    url = f"https://finnhub.io/api/v1/forex/candle?symbol={SYMBOL}&resolution=60&count=2&token={FINNHUB_KEY}"
-    r = requests.get(url).json()
-    if r.get("s") != "ok":
-        return None
-    return r["h"][-2], r["l"][-2]  # high, low последней закрытой свечи
 
-async def price_stream(chat_id, context: ContextTypes.DEFAULT_TYPE):
-    global current_high, current_low
-    async with websockets.connect(f"wss://ws.finnhub.io?token={FINNHUB_KEY}") as ws:
-        await ws.send(json.dumps({"type": "subscribe", "symbol": SYMBOL}))
-        while True:
-            msg = json.loads(await ws.recv())
-            if "data" in msg:
-                price = msg["data"][0]["p"]
-                if current_high and price > current_high:
-                    await context.bot.send_message(chat_id=chat_id, text=f"🔺 Снятие ликвидности выше H1 high: {price:.5f}")
-                    current_high = price
-                elif current_low and price < current_low:
-                    await context.bot.send_message(chat_id=chat_id, text=f"🔻 Снятие ликвидности ниже H1 low: {price:.5f}")
-                    current_low = price
+@bot.message_handler(commands=['start'])
+def start_command(message):
+    bot.reply_to(message, f"Ваш chat_id: {message.chat.id}")
+    bot.send_message(message.chat.id, "Мониторинг EURUSD активирован. Проверка каждые 60 секунд.")
 
-async def candle_check(context: ContextTypes.DEFAULT_TYPE):
-    global current_high, current_low, previous_high, previous_low
-    data = await get_hourly_data()
-    if not data:
+
+def check_price():
+    global previous_high, previous_low
+
+    candles = finnhub_client.forex_candles(SYMBOL, '60', int(time.time()) - 60*60*24, int(time.time()))
+    if candles['s'] != 'ok':
+        print("Ошибка получения данных от Finnhub")
         return
-    high, low = data
-    if previous_high is None:
-        previous_high, previous_low = high, low
-        current_high, current_low = high, low
-        return
-    if high > previous_high:
-        await context.bot.send_message(chat_id=context.job.chat_id, text=f"📈 Новый HIGH H1: {high:.5f}")
-    if low < previous_low:
-        await context.bot.send_message(chat_id=context.job.chat_id, text=f"📉 Новый LOW H1: {low:.5f}")
-    previous_high, previous_low = high, low
-    current_high, current_low = high, low
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    await update.message.reply_text("Мониторинг EURUSD активирован. Будут уведомления о закрытии H1 и пробоях уровней.")
-    context.job_queue.run_repeating(candle_check, interval=3600, first=5, chat_id=chat_id)
-    asyncio.create_task(price_stream(chat_id, context))
+    highs = candles['h']
+    lows = candles['l']
+    current_high = highs[-1]
+    current_low = lows[-1]
+
+    if previous_high is None or previous_low is None:
+        previous_high = current_high
+        previous_low = current_low
+        return
+
+    if current_high > previous_high:
+        bot.send_message(CHAT_ID, f"📈 Новый HIGH H1: {current_high:.5f}")
+        previous_high = current_high
+
+    if current_low < previous_low:
+        bot.send_message(CHAT_ID, f"📉 Новый LOW H1: {current_low:.5f}")
+        previous_low = current_low
+
 
 def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.run_polling()
+    print("Бот запущен. Проверка каждые 60 секунд.")
+    while True:
+        try:
+            check_price()
+            time.sleep(60)
+        except Exception as e:
+            print("Ошибка:", e)
+            time.sleep(60)
+
 
 if __name__ == "__main__":
-    main()
+    import threading
+    t = threading.Thread(target=main)
+    t.start()
+    bot.infinity_polling()
