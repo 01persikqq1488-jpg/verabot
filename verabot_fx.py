@@ -81,8 +81,33 @@ def check_price():
 
         if current_high > previous_high:
             for chat_id in subscribers:
-                bot.send_message(chat_id, f"📈 Новый HIGH H1
+                bot.send_message(chat_id, f"📈 Новый HIGH H1: {current_high:.5f}")
+            previous_high = current_high
+
+        if current_low < previous_low:
+            for chat_id in subscribers:
+                bot.send_message(chat_id, f"📉 Новый LOW H1: {current_low:.5f}")
+            previous_low = current_low
+
+    except Exception as e:
+        print("Ошибка в check_price:", e)
 
 
+def run_price_monitor():
+    print("Мониторинг цен запущен. Проверка каждые 60 секунд.")
+    while True:
+        try:
+            check_price()
+            time.sleep(60)
+        except Exception as e:
+            print("Ошибка в основном цикле:", e)
+            time.sleep(60)
 
 
+if __name__ == "__main__":
+    threading.Thread(target=run_price_monitor, daemon=True).start()
+    threading.Thread(target=lambda: bot.polling(non_stop=True, timeout=60), daemon=True).start()
+
+    port = int(os.environ.get("PORT", 10000))
+    print("Flask сервер запущен на порту", port)
+    app.run(host="0.0.0.0", port=port)
