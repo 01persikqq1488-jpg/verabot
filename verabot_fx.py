@@ -5,11 +5,9 @@ import telebot
 import finnhub
 from flask import Flask
 
-# === Переменные окружения (Render Environment) ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 FINNHUB_KEY = os.getenv("FINNHUB_KEY")
 
-# === Параметры ===
 SYMBOL = "OANDA:EUR_USD"
 SUBSCRIBERS_FILE = "subscribers.txt"
 
@@ -18,7 +16,6 @@ finnhub_client = finnhub.Client(api_key=FINNHUB_KEY)
 previous_high = None
 previous_low = None
 
-# === Flask для Render ===
 app = Flask(__name__)
 
 @app.route('/')
@@ -26,7 +23,6 @@ def home():
     return "Bot is running", 200
 
 
-# === Подписки пользователей ===
 def load_subscribers():
     if not os.path.exists(SUBSCRIBERS_FILE):
         return set()
@@ -41,7 +37,6 @@ def save_subscribers(subscribers):
 subscribers = load_subscribers()
 
 
-# === Telegram команды ===
 @bot.message_handler(commands=['start'])
 def start_command(message):
     user_id = message.chat.id
@@ -66,7 +61,6 @@ def stop_command(message):
         bot.reply_to(message, "Вы не были подписаны.")
 
 
-# === Проверка цены ===
 def check_price():
     global previous_high, previous_low
     try:
@@ -87,33 +81,7 @@ def check_price():
 
         if current_high > previous_high:
             for chat_id in subscribers:
-                bot.send_message(chat_id, f"📈 Новый HIGH H1: {current_high:.5f}")
-            previous_high = current_high
-
-        if current_low < previous_low:
-            for chat_id in subscribers:
-                bot.send_message(chat_id, f"📉 Новый LOW H1: {current_low:.5f}")
-            previous_low = current_low
-
-    except Exception as e:
-        print("Ошибка в check_price:", e)
-
-
-# === Основной цикл проверки ===
-def run_price_monitor():
-    print("Мониторинг цен запущен. Проверка каждые 60 секунд.")
-    while True:
-        try:
-            check_price()
-            time.sleep(60)
-        except Exception as e:
-            print("Ошибка в основном цикле:", e)
-            time.sleep(60)
-
-
-# === Точка входа ===
-if __name__ == "__main
-
+                bot.send_message(chat_id, f"📈 Новый HIGH H1
 
 
 
