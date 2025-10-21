@@ -5,11 +5,12 @@ import telebot
 import os
 from flask import Flask
 
-# === ВАШИ ДАННЫЕ ===
-BOT_TOKEN = "8357685940:AAGiIZtflcSSDfNbY_ZhiTc8va2q8k_UGhM"
-FINNHUB_KEY = "d3rkj9kp0pr01qopqph8sfa0d3rkj9kp0pr01qopqph8sfag"
-CHAT_ID = 6486928282
-# ====================
+# === Переменные окружения (Render Environment) ===
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+FINNHUB_KEY = os.getenv("FINNHUB_KEY")
+CHAT_ID = int(os.getenv("CHAT_ID"))
+# =================================================
+
 
 SYMBOL = "OANDA:EUR_USD"
 
@@ -78,3 +79,4 @@ if __name__ == "__main__":
     # Flask-сервер для Render (порт обязателен)
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
