@@ -60,5 +60,7 @@ def stop_command(message):
         bot.reply_to(message, "❌ Вы отписались от уведомлений.")
         print(f"[-] Пользователь удалён: {user_id}")
     else:
-        bot.reply_to(message, "Вы не были подписаны.")_
+        bot.reply_to(message, "Вы не были подписаны.")
+
+
 
