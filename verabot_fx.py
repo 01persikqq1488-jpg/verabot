@@ -4,7 +4,7 @@ import telebot
 import os
 
 # === ВАШИ ДАННЫЕ ===
-BOT_TOKEN = "8357685940:AAFzQ9VXJh5XCxvfw2bryDjNX8r-TcIOkw"
+BOT_TOKEN = "8357685940:AAGiIZtflcSSDfNbY_ZhiTc8va2q8k_UGhM"
 FINNHUB_KEY = "d3rkj9kp0pr01qopqph8sfa0d3rkj9kp0pr01qopqph8sfag"
 CHAT_ID = 6486928282
 # ====================
@@ -67,3 +67,4 @@ if __name__ == "__main__":
     t = threading.Thread(target=main)
     t.start()
     bot.infinity_polling()
+
