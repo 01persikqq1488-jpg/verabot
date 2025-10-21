@@ -1,5 +1,4 @@
 finnhub-python
 requests
 websockets
-python-telegram-bot
 pyTelegramBotAPI
