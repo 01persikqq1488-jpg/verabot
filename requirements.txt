@@ -1,3 +1,6 @@
-python-telegram-bot
+finnhub-python
 requests
 websockets
+python-telegram-bot
+
+
