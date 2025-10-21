@@ -11,7 +11,6 @@ FINNHUB_KEY = os.getenv("FINNHUB_KEY")
 CHAT_ID = int(os.getenv("CHAT_ID"))
 # =================================================
 
-
 SYMBOL = "OANDA:EUR_USD"
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -26,7 +25,7 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return "Bot is running!", 200
-# ----------------------------------
+
 
 @bot.message_handler(commands=['start'])
 def start_command(message):
@@ -76,13 +75,20 @@ def main():
             time.sleep(60)
 
 
-if __name__ == "__main__":
-    import threading
+def run_bot():
+    print("Запуск Telegram polling...")
+    bot.infinity_polling(timeout=60, long_polling_timeout=10)
 
-    # Запуск мониторинга в отдельном потоке
-    t = threading.Thread(target=main)
-    t.start()
 
-    # Flask для Render, чтобы он видел активный веб-сервер
+def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
+
+if __name__ == "__main__":
+    t1 = threading.Thread(target=run_bot)
+    t1.start()
+    main_thread = threading.Thread(target=main)
+    main_thread.start()
+    run_flask()
+
